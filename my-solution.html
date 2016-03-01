@@ -1,0 +1,119 @@
+<!--
+
+This is a .html file containing the improved .js code for the Shopify application.
+
+/***********************************************************************
+				Improvements - Fixed code will follow
+ ***********************************************************************
+(1) Fixed assignment operator = to conditional equality ==
+
+(2) Fixed the <else if> for the default payment info to <else>
+
+(3) Accessing the <getCardType> property without () will return the 
+	function definition instead of the card_type value. Fixed to <getCardType()>
+	
+	Since the other properties of order are public variables, card_type should be 
+	public as well for consistensy, unless there was a reason for it to be private. 
+	(i.e. security)
+
+(4) Lines that were too many columns wide were moved for cleaniness
+
+(5) Grammar improvements:
+		Added a two spaces before and after product name, 
+		Added periods after " has been received." and " was charged $__."
+		replaced the <p> with a space before " was charged ",
+		moved "$" in front of the value.
+
+(6) Only the last four digits of a credit card number should display on screen
+
+(7) Added transaction number and order date.
+
+(8) Other possible improvements:
+	* The customer's account is not charged until the product is shipped
+	* Delivery info, or estimated shipping date 
+	* Letting the user know they should expect an email when the item ships
+	* A table to display multiple product names, quantity, and item price
+	* How the final total was calculated using: 
+		item price, subtotal, GST, HST, promotional savings, and shipping fees
+	* Billing address and delivery address
+	* Shipping service used
+	* Printer friendly page
+
+-->
+
+<!DOCTYPE html>
+<html>
+<head>
+	<script type="text/javascript">
+
+	// ************************************************************************************	
+	//								Improved Shopify Code						
+	// ************************************************************************************
+		function showDate() {
+			var dt = new Date();
+			return dt.toDateString();
+		}
+
+		function receipt(order) {
+			if (order.payment_type == "creditcard") { // 1 
+				var cn = order.payment.card_number; // cn is last 4 digits of the credit card
+				if (cn.length > 4) cn = cn.substr(cn.length - 4); 
+				p = "Payment info: " + order.payment.getCardType() + " " + cn; // 3 6
+					//card_type = VISA/MasterCard etc. 
+			} else if (order.payment_type == "paypal") {
+				p = "Payment info: " + order.payment.paypal_info;
+			} else if (order.payment_type == "manual") {
+				p = "Payment info: " + order.payment.manual_payment_info;
+			} else if (order.payment_type == "free") {
+				p = "Payment info: This order was free!"; //Free order or promotional item
+			} else { // 2
+				p = "Payment info:" + order.payment.default_payment_info; //default order info
+			}
+
+			if (order.payment_type != "free") {
+				p = p + " was charged " + "$" + order.amount_in_dollars + ".</p>";
+		  }
+		 
+		  html = "<p>Order #: " + order.payment.transaction_number + " | " // 7
+		  html = html + "Order date: " + showDate();
+		  html = html + "<p>" + "Your order of " + order.products.name + " has been received." 
+		    + "</p>" + "<p>" + p + "</p>"; // 4
+
+		  document.write("<h1> Order receipt details </h1>" + html);
+		}
+	// ************************************************************************************
+
+	</script>
+</head>
+
+<body>
+	<script type="text/javascript">
+
+		var order = {
+			payment_type : "creditcard", //4 types: "creditcard", "paypal", "manual", "free"
+			amount_in_dollars : "2,800",
+
+			payment: {
+				paypal_info: "Paypal account",
+				manual_payment_info: "credit card",
+				default_payment_info: "debit card",
+				card_number: "2654765487788543",
+				transaction_number: "0002934987293",
+				card_type: "VISA",
+
+				getCardType: function() {
+					return this.card_type;           
+				}
+			},
+
+			products: {
+				name: "30 Lightsaber Replicas",
+			}
+		}
+
+		receipt(order);
+
+	</script>
+<div id="myDiv"></div>
+</body>
+</html>
